@@ -1,0 +1,83 @@
+CRIAR PROJETO REACT V18
+
+
+npx create-react-app teste --template typescript --use-npm --legacy-peer-deps --force
+Obs: Ignore o erro nesta etapa
+
+cd teste
+
+
+rm -rf package-lock.json
+
+
+abrir o arquivo package.json e mudar as seguintes depenências:
+
+"react": "19.0.0", mudar para "react": "^18.0.0",
+"react-dom": "19.0.0",| mudar para "react-dom": "18.0.0",
+
+npm install
+
+npm install typescript@4.9.5
+
+npm install react@18 react-dom@18 react-scripts@5 @testing-library/react @testing-library/jest-dom @testing-library/user-event @types/react@18 @types/react-dom@18 web-vitals typescript --force
+
+npm install --save-dev @babel/plugin-proposal-private-property-in-object
+
+npx tsc --init
+
+npm install
+
+INSTALANDO E INICIANDO SCRYPT
+
+npx scrypt-cli@latest init
+
+npx scrypt-cli@latest compile
+
+criar dentro de src a pasta @types e, dentro dela, o arquivo chamado svg.d.ts depois inserir nele o código abaixo:
+
+declare module '*.svg' {
+    const content: string;
+    export default content;
+}
+
+inserir no arquivo tsconfig.json apague tudo, copie e cole o código abaixo.
+{
+ "compilerOptions": {
+   "target": "ESNext",
+   "module": "commonjs",
+   "esModuleInterop": true,
+   "forceConsistentCasingInFileNames": true,
+   "strict": true,
+   "skipLibCheck": true,
+   "experimentalDecorators": true,
+   "resolveJsonModule": true,
+   "jsx": "react-jsx"
+ }
+}
+
+npm i --save-dev @types/jest
+
+npm install web-vitals@2.1.4
+
+Apague as seguintes pastas no projeto:
+
+node_modules/.cache caso exista essa pasta
+node_modules/@scrypt-inc/bsv
+node_modules/scrypt-ts
+
+Agora copie as seguintes pastas do crack_scrypt_0.1.73v3 para os caminhos espcificados abaixo:
+Pasta bsv para node_modules/@scrypt-inc/
+Pasta scrypt-ts para node_modules/
+
+Copie os arquivos App.tsx e index.tsx do projeto para uma pasta à parte.
+
+Copie os arquivos de NewHelloWorld-React para dentro de /src/ no projeto. Esses arquivos serão usados para testar a funcionalidade dos contratos sem erros.
+
+Execute o compile novamente:
+npx scrypt-cli@latest compile
+
+npm start
+
+Agora teste o contrato
+
+DONE

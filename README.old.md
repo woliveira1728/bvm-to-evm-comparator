@@ -1,1 +1,0 @@
-# bvm-evm-comparator

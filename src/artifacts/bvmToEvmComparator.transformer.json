@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "errors": [],
+  "scryptfile": "bvmToEvmComparator.scrypt",
+  "sourceMapFile": "bvmToEvmComparator.scrypt.map",
+  "ctxMethods": [
+    "increment"
+  ]
+}
