@@ -5,9 +5,12 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 import { BvmToEvmComparator } from './contracts/bvmToEvmComparator';
-import artifact from './artifacts/bvmToEvmComparator.json';
+import { MessageStorageSCrypt } from './contracts/MessageStorageSCrypt';
+import artifactHelloWorld from './artifacts/bvmToEvmComparator.json';
+import messageContract from './artifacts/MessageStorageSCrypt.json'
 
-BvmToEvmComparator.loadArtifact(artifact);
+BvmToEvmComparator.loadArtifact(artifactHelloWorld);
+MessageStorageSCrypt.loadArtifact(messageContract);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

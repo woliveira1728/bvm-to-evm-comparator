@@ -3,7 +3,5 @@
   "errors": [],
   "scryptfile": "MessageStorageSCrypt.scrypt",
   "sourceMapFile": "MessageStorageSCrypt.scrypt.map",
-  "ctxMethods": [
-    "setMessage"
-  ]
+  "ctxMethods": []
 }

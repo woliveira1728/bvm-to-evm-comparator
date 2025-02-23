@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { Buffer } from 'buffer';
 
 import {
   DefaultProvider,
@@ -56,23 +57,18 @@ function MessageStorage() {
   // Função para realizar o deploy do contrato
   const deploy = async (amount: number) => {
     try {
-      // Compile o contrato antes de criar uma instância
-      await MessageStorageSCrypt.compile();
-
       const wallet = getWallet();
       const balance = await wallet.getBalance();
-      console.log("Saldo do wallet:", balance);
 
-      // Converte a mensagem inicial para ByteString
-      const initialMessage = toByteString("Hello from sCrypt!", false);
+      // Converte a mensagem inicial para hexadecimal
+      const initialMessage = toHex(Buffer.from("Hello from sCrypt!").toString('hex'));
       const address = await wallet.getDefaultAddress();
       const ownerPubKey = await wallet.getPubKey(address);
+      const instance = new MessageStorageSCrypt(initialMessage, PubKey(toHex(ownerPubKey)));
 
-      const instance = new MessageStorageSCrypt(initialMessage, ownerPubKey as unknown as PubKey);
       await instance.connect(wallet);
-
       const deployTx = await instance.deploy(amount);
-      console.log("Contrato implantado. TXID:", deployTx.id);
+
       alert("Contrato implantado. TXID: " + deployTx.id);
     } catch (e) {
       console.error("Deploy falhou", e);
