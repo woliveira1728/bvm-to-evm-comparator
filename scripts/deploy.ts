@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs'
 import { BvmToEvmComparator } from '../src/contracts/bvmToEvmComparator'
 import { privateKey } from './privateKey'
-import { bsv, TestWallet, DefaultProvider, sha256 } from 'scrypt-ts'
+import { bsv, TestWallet, DefaultProvider, sha256, toByteString } from 'scrypt-ts'
 
 function getScriptHash(scriptPubKeyHex: string) {
     const res = sha256(scriptPubKeyHex).match(/.{2}/g)
@@ -22,17 +22,18 @@ async function main() {
 
     // TODO: Adjust the amount of satoshis locked in the smart contract:
     const amount = 100
+    const message = toByteString('hello world', true);
+    const messageHash = sha256(message);
 
     const instance = new BvmToEvmComparator(
         // TODO: Pass constructor parameter values.
-        0n
+        0n,
+        messageHash
     )
 
-    // Connect to a signer.
-    await instance.connect(signer)
-
     // Contract deployment.
-    const deployTx = await instance.deploy(amount)
+    const deployTx = await instance.deploy(amount, messageHash)
+    await instance.connect(signer)
 
     // Save deployed contracts script hash.
     const scriptHash = getScriptHash(instance.lockingScript.toHex())

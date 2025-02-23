@@ -4,7 +4,8 @@ import {
     SmartContract,
     hash256,
     assert,
-    SigHash
+    SigHash,
+    sha256
 } from 'scrypt-ts'
 
 import type {ByteString} from 'scrypt-ts';
@@ -13,9 +14,13 @@ export class BvmToEvmComparator extends SmartContract {
     @prop(true)
     count: bigint
 
-    constructor(count: bigint) {
-        super(count)
+    @prop(true)
+    hash: ByteString;
+
+    constructor(count: bigint, hash: ByteString) {
+        super(count, hash)
         this.count = count
+        this.hash = hash;
     }
 
     @method(SigHash.SINGLE)
@@ -28,5 +33,10 @@ export class BvmToEvmComparator extends SmartContract {
         const output: ByteString = this.buildStateOutput(amount)
         // verify current tx has this single output
         assert(this.ctx.hashOutputs === hash256(output), 'hashOutputs mismatch')
+    }
+
+    @method()
+    public unlock(message: ByteString) {
+        assert(sha256(message) == this.hash, 'Hash does not match');
     }
 }
