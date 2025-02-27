@@ -36,7 +36,6 @@ function Home() {
 
     } catch (e) {
       console.error('deploy HelloWorld failes', e)
-      console.log('Balance: ' + balance)
       alert('deploy HelloWorld failes => ' + e)
     }
   };

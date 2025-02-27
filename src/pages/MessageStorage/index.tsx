@@ -23,6 +23,7 @@ function MessageStorage() {
   const [address, setAddress] = useState("");
   const [balance, setBalance] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const [storedMessage, setStoredMessage] = useState("");
   const txidRef = useRef<HTMLInputElement>(null);
 
   // Função para criar o wallet a partir da chave privada fornecida
@@ -60,8 +61,8 @@ function MessageStorage() {
       const wallet = getWallet();
       const balance = await wallet.getBalance();
 
-      // Converte a mensagem inicial para hexadecimal
-      const initialMessage = toHex(Buffer.from("Hello from sCrypt!").toString('hex'));
+      // Converte a mensagem inicial para ByteString
+      const initialMessage = toByteString("Hello from sCrypt!", false);
       const address = await wallet.getDefaultAddress();
       const ownerPubKey = await wallet.getPubKey(address);
       const instance = new MessageStorageSCrypt(initialMessage, PubKey(toHex(ownerPubKey)));
@@ -108,9 +109,9 @@ function MessageStorage() {
   
       const newMessage = toByteString(newMessageValue, false);
   
-      const { tx: callTx } = await instance.methods.setMessage(newMessage);
-      console.log("setMessage chamado. TXID:", callTx.id);
-      alert("setMessage TX: " + callTx.id);
+      const { tx: callTx } = await instance.methods.updateMessage(newMessage);
+      console.log("updateMessage chamado. TXID:", callTx.id);
+      alert("updateMessage TX: " + callTx.id);
     } catch (e) {
       console.error("Interação falhou", e);
       alert("Interação falhou: " + e);
@@ -137,8 +138,11 @@ function MessageStorage() {
         return;
       }
 
-      // A propriedade `message` contém o estado atual do contrato (já em ByteString)
-      alert("Mensagem armazenada: " + instance.message);
+      // Chama o método readMessage para obter a mensagem armazenada
+      const message = instance.message;
+      const decodedMessage = Buffer.from(message, 'hex').toString('utf-8');
+      setStoredMessage(decodedMessage);
+      alert("Mensagem armazenada: " + decodedMessage);
     } catch (e) {
       console.error("Leitura da mensagem falhou", e);
       alert("Leitura da mensagem falhou: " + e);
@@ -238,6 +242,12 @@ function MessageStorage() {
             </button>
           </div>
         </div>
+
+        {storedMessage && (
+          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <p style={{ fontSize: '14px' }}>Mensagem Armazenada: {storedMessage}</p>
+          </div>
+        )}
       </header>
     </div>
   );

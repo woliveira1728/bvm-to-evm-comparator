@@ -2,7 +2,7 @@
 contract MessageStorageSCrypt {
   @state bytes message;
   @state PubKey owner;
-  public function updateMessage(bytes newMessage, Sig sig, SigHashPreimage __scrypt_ts_txPreimage) {
+  public function updateMessage(bytes newMessage, SigHashPreimage __scrypt_ts_txPreimage) {
     require(Tx.checkPreimageSigHashType(__scrypt_ts_txPreimage, SigHashType(b'41')));
     this.message = newMessage;
     require(true);
