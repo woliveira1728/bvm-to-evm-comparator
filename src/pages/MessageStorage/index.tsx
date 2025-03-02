@@ -23,8 +23,8 @@ function MessageStorage() {
   const [address, setAddress] = useState("");
   const [balance, setBalance] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
-  const [storedMessage, setStoredMessage] = useState("");
-  const txidRef = useRef<HTMLInputElement>(null);
+  const [txid, setTxid] = useState("");
+  const baseUrlWhatsOnChain = 'https://test.whatsonchain.com/tx/';
 
   // Função para criar o wallet a partir da chave privada fornecida
   const getWallet = (): TestWallet => {
@@ -61,8 +61,8 @@ function MessageStorage() {
       const wallet = getWallet();
       const balance = await wallet.getBalance();
 
-      // Converte a mensagem inicial para ByteString
-      const initialMessage = toByteString("Hello from sCrypt!", false);
+      // Converte a mensagem inicial para hexadecimal
+      const initialMessage = toHex(Buffer.from("Hello from sCrypt!").toString('hex'));
       const address = await wallet.getDefaultAddress();
       const ownerPubKey = await wallet.getPubKey(address);
       const instance = new MessageStorageSCrypt(initialMessage, PubKey(toHex(ownerPubKey)));
@@ -70,65 +70,59 @@ function MessageStorage() {
       await instance.connect(wallet);
       const deployTx = await instance.deploy(amount);
 
+      console.log("Contrato implantado. TXID: ", deployTx.id);
       alert("Contrato implantado. TXID: " + deployTx.id);
+
+      // Atualizar a interface do usuário com o novo TXID
+      setTxid(deployTx.id);
     } catch (e) {
       console.error("Deploy falhou", e);
       alert("Deploy falhou: " + e);
     }
   };
 
-  // Função para interagir com o contrato (chama setMessage para atualizar a mensagem)
-  const interact = async () => {
+  // Função para atualizar a mensagem no contrato (desplegar um novo contrato com a nova mensagem)
+  const updateMessage = async () => {
     try {
       const wallet = getWallet();
-  
-      const txidValue = txidRef.current?.value?.trim();
-      if (!txidValue || txidValue === "TXID") {
-        alert("Por favor, informe um TXID válido!");
-        return;
-      }
-  
+
       if (!newMessageValue) {
         alert("Por favor, informe o novo valor da mensagem!");
         return;
       }
-  
-      // Recupera a transação a partir do TXID fornecido
-      const tx = await provider.getTransaction(txidValue);
-      console.log("Transação recuperada:", tx.id);
-  
-      // Reconstrói a instância do contrato a partir da transação (estado na saída 0)
-      const instance = MessageStorageSCrypt.fromTx(tx, 0);
-      if (!instance) {
-        alert("Falha ao reconstruir o contrato a partir do TXID.");
-        return;
-      }
-  
+
+      // Converte a nova mensagem para hexadecimal
+      const newMessage = toHex(Buffer.from(newMessageValue).toString('hex'));
+
+      // Desplegar um novo contrato com a nova mensagem
+      const address = await wallet.getDefaultAddress();
+      const ownerPubKey = await wallet.getPubKey(address);
+      const instance = new MessageStorageSCrypt(newMessage, PubKey(toHex(ownerPubKey)));
+
       await instance.connect(wallet);
-      console.log("Contrato conectado:", instance);
-  
-      const newMessage = toByteString(newMessageValue, false);
-  
-      const { tx: callTx } = await instance.methods.updateMessage(newMessage);
-      console.log("updateMessage chamado. TXID:", callTx.id);
-      alert("updateMessage TX: " + callTx.id);
+      const deployTx = await instance.deploy(100); // Ajuste o valor conforme necessário
+
+      console.log("Mensagem atualizada. TXID: ", deployTx.id);
+      alert("Mensagem atualizada. TXID: " + deployTx.id);
+
+      // Atualizar a interface do usuário com o novo TXID
+      setTxid(deployTx.id);
     } catch (e) {
-      console.error("Interação falhou", e);
-      alert("Interação falhou: " + e);
+      console.error("Atualização falhou", e);
+      alert("Atualização falhou: " + e);
     }
   };
 
   // Função para ler a mensagem armazenada no contrato
   const readMessage = async () => {
     try {
-      const txidValue = txidRef.current?.value?.trim();
-      if (!txidValue || txidValue === "TXID") {
+      if (!txid) {
         alert("Por favor, informe um TXID válido!");
         return;
       }
 
       // Recupera a transação a partir do TXID informado
-      const tx = await provider.getTransaction(txidValue);
+      const tx = await provider.getTransaction(txid);
       console.log("Transação recuperada:", tx.id);
 
       // Reconstrói a instância do contrato a partir da transação (assumindo que o estado está na saída 0)
@@ -138,11 +132,11 @@ function MessageStorage() {
         return;
       }
 
-      // Chama o método readMessage para obter a mensagem armazenada
-      const message = instance.message;
-      const decodedMessage = Buffer.from(message, 'hex').toString('utf-8');
-      setStoredMessage(decodedMessage);
-      alert("Mensagem armazenada: " + decodedMessage);
+      // Converte a mensagem de volta para string
+      const messageHex = instance.message;
+      const message = Buffer.from(messageHex, 'hex').toString('utf-8');
+
+      alert("Mensagem armazenada: " + message);
     } catch (e) {
       console.error("Leitura da mensagem falhou", e);
       alert("Leitura da mensagem falhou: " + e);
@@ -161,7 +155,7 @@ function MessageStorage() {
             <label style={{ fontSize: '14px' }}>
               Chave Privada (hex):
               <input
-                type="text"
+                type="password"
                 value={privateKeyHex}
                 onChange={(e) => setPrivateKeyHex(e.target.value)}
                 placeholder="Informe sua chave privada em hex"
@@ -202,19 +196,19 @@ function MessageStorage() {
         </div>
 
         <div style={{ marginTop: '20px' }}>
+          <div style={{ textAlign: 'center', marginTop: '10px' }}>
+            {txid ? (
+              <p style={{ fontSize: '14px' }}>
+                TXID: <a href={`${baseUrlWhatsOnChain}${txid}`} target="_blank" rel="noopener noreferrer"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+                >{txid}</a>
+              </p>
+            ) : null}
+          </div>
           <div style={{ textAlign: 'center' }}>
             <label style={{ fontSize: '14px' }}>
-              Informe o TXID do contrato implantado, o novo valor da mensagem e pressione Unlock para atualizar:
+              Informe o novo valor da mensagem e pressione Update para atualizar:
             </label>
-          </div>
-          <div style={{ textAlign: 'center', marginTop: '10px' }}>
-            <input
-              ref={txidRef}
-              type="text"
-              defaultValue="TXID"
-              placeholder="Informe o TXID"
-              style={{ fontSize: '14px', padding: '5px', width: '400px' }}
-            />
           </div>
           <div style={{ textAlign: 'center', marginTop: '10px' }}>
             <input
@@ -228,10 +222,10 @@ function MessageStorage() {
           <div style={{ textAlign: 'center', marginTop: '10px' }}>
             <button
               className="insert"
-              onClick={interact}
+              onClick={updateMessage}
               style={{ fontSize: '14px', padding: '5px', marginRight: '10px' }}
             >
-              Unlock (Atualizar Mensagem)
+              Update Message
             </button>
             <button
               className="insert"
@@ -242,12 +236,6 @@ function MessageStorage() {
             </button>
           </div>
         </div>
-
-        {storedMessage && (
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <p style={{ fontSize: '14px' }}>Mensagem Armazenada: {storedMessage}</p>
-          </div>
-        )}
       </header>
     </div>
   );
