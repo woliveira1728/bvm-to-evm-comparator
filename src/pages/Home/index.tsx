@@ -20,7 +20,8 @@ let Alice: TestWallet;
 
 function Home() {
   const [privateKeyHex, setPrivateKeyHex] = useState("");
-  const [newMessageValue, setNewMessageValue] = useState("");
+  const [newMessageBvmValue, setNewMessageBvmValue] = useState("");
+  const [newMessageEvmValue, setNewMessageEvmValue] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [address, setAddress] = useState("");
   const [balance, setBalance] = useState(0);
@@ -92,13 +93,13 @@ function Home() {
     try {
       const wallet = getBvmWallet();
 
-      if (!newMessageValue) {
+      if (!newMessageBvmValue) {
         alert("Por favor, informe o novo valor da mensagem!");
         return;
       }
 
       // Converte a nova mensagem para hexadecimal
-      const newMessage = toHex(Buffer.from(newMessageValue).toString('hex'));
+      const newMessage = toHex(Buffer.from(newMessageBvmValue).toString('hex'));
 
       // Desplegar um novo contrato com a nova mensagem
       const address = await wallet.getDefaultAddress();
@@ -211,7 +212,7 @@ function Home() {
           signer
         );
 
-        const tx = await contract.updateMessage(newMessageValue);
+        const tx = await contract.updateMessage(newMessageEvmValue);
         await tx.wait();
 
         console.log("Mensagem EVM atualizada. TX: ", tx.hash);
@@ -317,22 +318,20 @@ function Home() {
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
               <input
                 type="text"
-                value={newMessageValue}
-                onChange={(e) => setNewMessageValue(e.target.value)}
+                value={newMessageBvmValue}
+                onChange={(e) => setNewMessageBvmValue(e.target.value)}
                 placeholder="Informe o novo valor da mensagem"
                 style={{ fontSize: '14px', padding: '5px', width: '400px' }}
               />
             </div>
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
               <button
-                className="insert"
                 onClick={updateBvmMessage}
                 style={{ fontSize: '14px', padding: '5px', marginRight: '10px' }}
               >
                 Update Message
               </button>
               <button
-                className="insert"
                 onClick={readBvmMessage}
                 style={{ fontSize: '14px', padding: '5px' }}
               >
@@ -391,17 +390,23 @@ function Home() {
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
               <input
                 type="text"
-                value={newMessageValue}
-                onChange={(e) => setNewMessageValue(e.target.value)}
+                value={newMessageEvmValue}
+                onChange={(e) => setNewMessageEvmValue(e.target.value)}
                 placeholder="Informe o novo valor da mensagem"
                 style={{ fontSize: '14px', padding: '5px', width: '400px' }}
               />
             </div>
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              <button onClick={updateEvmMessage} >
+              <button
+                onClick={updateEvmMessage}
+                style={{ fontSize: '14px', padding: '5px', marginRight: '10px' }}
+              >
                 Update Message
               </button>
-              <button onClick={readEvmMessage} >
+              <button
+                onClick={readEvmMessage}
+                style={{ fontSize: '14px', padding: '5px' }}
+              >
                 Read Message
               </button>
             </div>
