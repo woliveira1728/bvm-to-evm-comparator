@@ -1,6 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { Buffer } from 'buffer';
 import styles from "./style.module.scss";
+import { MessageStorageSCrypt } from "../../contracts/MessageStorageSCrypt";
+import { ethers, BrowserProvider, ContractFactory, Contract } from "ethers";
+import MessageStorageArtifact from "../../artifacts/MessageStorage.json";
+import path from 'path';
 import {
   DefaultProvider,
   bsv,
@@ -10,24 +14,26 @@ import {
   toHex,
   PubKey
 } from "scrypt-ts";
-import { MessageStorageSCrypt } from "../../contracts/MessageStorageSCrypt";
-import path from 'path';
 
 const provider = new DefaultProvider({network: bsv.Networks.testnet});
 let Alice: TestWallet;
 
-function MessageStorage() {
+function Home() {
   const [privateKeyHex, setPrivateKeyHex] = useState("");
   const [newMessageValue, setNewMessageValue] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [address, setAddress] = useState("");
   const [balance, setBalance] = useState(0);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isBvmConnected, setIsBvmConnected] = useState(false);
+  const [isEvmConnected, setIsEvmConnected] = useState(false);
   const [txid, setTxid] = useState("");
+  const [evmAddress, setEvmAddress] = useState("");
+  const [evmBalance, setEvmBalance] = useState("");
+  const [evmContractAddress, setEvmContractAddress] = useState("");
   const baseUrlWhatsOnChain = 'https://test.whatsonchain.com/tx/';
 
   // Função para criar o wallet a partir da chave privada fornecida
-  const getWallet = (): TestWallet => {
+  const getBvmWallet = (): TestWallet => {
     if (!privateKeyHex) {
       alert("Chave privada inválida ou ausente");
       throw new Error("Chave privada é obrigatória!");
@@ -37,9 +43,9 @@ function MessageStorage() {
   };
 
   // Função para conectar a carteira e exibir informações
-  const connectWallet = async () => {
+  const connectBvmWallet = async () => {
     try {
-      const wallet = getWallet();
+      const wallet = getBvmWallet();
       const address = await wallet.getDefaultAddress();
       const publicKey = await wallet.getPubKey(address);
       const balance = await wallet.getBalance();
@@ -47,7 +53,7 @@ function MessageStorage() {
       setPublicKey(publicKey.toString());
       setAddress(address.toString());
       setBalance(balance.confirmed);
-      setIsConnected(true);
+      setIsBvmConnected(true);
 
     } catch (e) {
       console.error("Conexão com a carteira falhou", e);
@@ -56,9 +62,9 @@ function MessageStorage() {
   };
 
   // Função para realizar o deploy do contrato
-  const deploy = async (amount: number) => {
+  const deployBvmContract = async (amount: number) => {
     try {
-      const wallet = getWallet();
+      const wallet = getBvmWallet();
       const balance = await wallet.getBalance();
 
       // Converte a mensagem inicial para hexadecimal
@@ -82,9 +88,9 @@ function MessageStorage() {
   };
 
   // Função para atualizar a mensagem no contrato (desplegar um novo contrato com a nova mensagem)
-  const updateMessage = async () => {
+  const updateBvmMessage = async () => {
     try {
-      const wallet = getWallet();
+      const wallet = getBvmWallet();
 
       if (!newMessageValue) {
         alert("Por favor, informe o novo valor da mensagem!");
@@ -114,7 +120,7 @@ function MessageStorage() {
   };
 
   // Função para ler a mensagem armazenada no contrato
-  const readMessage = async () => {
+  const readBvmMessage = async () => {
     try {
       if (!txid) {
         alert("Por favor, informe um TXID válido!");
@@ -143,15 +149,113 @@ function MessageStorage() {
     }
   };
 
+  // Função para conectar a carteira EVM
+  const connectEvmWallet = async () => {
+    if (window.ethereum) {
+      try {
+        const provider = new BrowserProvider(window.ethereum as any);
+        const accounts = await provider.send("eth_requestAccounts", []);
+        const signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        const balance = await provider.getBalance(address);
+
+        setEvmAddress(address);
+        setEvmBalance(ethers.formatEther(balance));
+        setIsEvmConnected(true);
+      } catch (e) {
+        console.error("Conexão com a carteira EVM falhou", e);
+        alert("Conexão com a carteira EVM falhou: " + e);
+      }
+    } else {
+      alert("MetaMask não está instalado!");
+    }
+  };
+
+  // Função para realizar o deploy do contrato EVM
+  const deployEvmContract = async () => {
+    if (window.ethereum) {
+      try {
+        const provider = new BrowserProvider(window.ethereum as any);
+        const signer = await provider.getSigner();
+        const factory = new ContractFactory(
+          MessageStorageArtifact.abi,
+          MessageStorageArtifact.bytecode,
+          signer
+        );
+
+        const contract = await factory.deploy("Hello from Solidity!");
+        await contract.waitForDeployment();
+
+        console.log("Contrato EVM implantado. Endereço: ", contract.target);
+        alert("Contrato EVM implantado. Endereço: " + contract.target);
+
+        setEvmContractAddress(contract.target.toString());
+      } catch (e) {
+        console.error("Deploy do contrato EVM falhou", e);
+        alert("Deploy do contrato EVM falhou: " + e);
+      }
+    } else {
+      alert("MetaMask não está instalado!");
+    }
+  };
+
+  // Função para atualizar a mensagem no contrato EVM
+  const updateEvmMessage = async () => {
+    if (window.ethereum && evmContractAddress) {
+      try {
+        const provider = new BrowserProvider(window.ethereum as any);
+        const signer = await provider.getSigner();
+        const contract = new Contract(
+          evmContractAddress,
+          MessageStorageArtifact.abi,
+          signer
+        );
+
+        const tx = await contract.updateMessage(newMessageValue);
+        await tx.wait();
+
+        console.log("Mensagem EVM atualizada. TX: ", tx.hash);
+        alert("Mensagem EVM atualizada. TX: " + tx.hash);
+      } catch (e) {
+        console.error("Atualização da mensagem EVM falhou", e);
+        alert("Atualização da mensagem EVM falhou: " + e);
+      }
+    } else {
+      alert("Conecte-se à carteira EVM e implante o contrato primeiro!");
+    }
+  };
+
+  // Função para ler a mensagem armazenada no contrato EVM
+  const readEvmMessage = async () => {
+    if (window.ethereum && evmContractAddress) {
+      try {
+        const provider = new BrowserProvider(window.ethereum as any);
+        const contract = new Contract(
+          evmContractAddress,
+          MessageStorageArtifact.abi,
+          provider
+        );
+
+        const message = await contract.message();
+        alert("Mensagem armazenada no contrato EVM: " + message);
+      } catch (e) {
+        console.error("Leitura da mensagem EVM falhou", e);
+        alert("Leitura da mensagem EVM falhou: " + e);
+      }
+    } else {
+      alert("Conecte-se à carteira EVM e implante o contrato primeiro!");
+    }
+  };
+
   return (
     <>
       <div className={styles.containerLeft}>
-        <section className={styles.sectionLeft}>
+        <section className={styles.section}>
           <h2 className={styles.h2Title}>
             Message Storage - BVM with sCrypt
           </h2>
 
-          {!isConnected ? (
+          {!isBvmConnected ? (
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '14px' }}>
                 Private Key (hex):
@@ -164,16 +268,18 @@ function MessageStorage() {
               </label>
             </div>
           ) : (
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{ fontSize: '14px' }}>Chave Pública: {publicKey}</p>
-              <p style={{ fontSize: '14px' }}>Endereço: {address}</p>
-              <p style={{ fontSize: '14px' }}>Saldo: {balance}</p>
+            <div className={styles.walletInfo}>
+              <p style={{ fontSize: '14px', width: '100%', textAlign: 'center'}}>Public Key:</p>
+              <p style={{ fontSize: '14px', width: '100%', wordWrap: 'break-word',overflowWrap: 'break-word', textAlign: 'center' }}>{publicKey}</p>
+              <p style={{ fontSize: '14px' }}>Address:</p>
+              <p style={{ fontSize: '14px' }}>{address}</p>
+              <p style={{ fontSize: '14px' }}>Balance: {balance}</p>
             </div>
           )}
 
-          {isConnected ? null : <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          {isBvmConnected ? null : <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <button
-              onClick={connectWallet}
+              onClick={connectBvmWallet}
             >
               Connect Wallet
             </button>
@@ -186,7 +292,7 @@ function MessageStorage() {
             <br />
             <button
               className="insert"
-              onClick={() => deploy(100)}
+              onClick={() => deployBvmContract(100)}
               style={{ fontSize: '14px', padding: '5px', marginTop: '10px' }}
             >
               Deploy
@@ -220,14 +326,14 @@ function MessageStorage() {
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
               <button
                 className="insert"
-                onClick={updateMessage}
+                onClick={updateBvmMessage}
                 style={{ fontSize: '14px', padding: '5px', marginRight: '10px' }}
               >
                 Update Message
               </button>
               <button
                 className="insert"
-                onClick={readMessage}
+                onClick={readBvmMessage}
                 style={{ fontSize: '14px', padding: '5px' }}
               >
                 Read Message
@@ -238,34 +344,21 @@ function MessageStorage() {
       </div>
 
       <div className={styles.containerRight}>
-        <section className={styles.sectionRight}>
+        <section className={styles.section}>
           <h2 style={{ fontSize: '34px', paddingBottom: '5px', paddingTop: '5px' }}>
             Message Storage - EVM with Solidity
           </h2>
 
-          {!isConnected ? (
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ fontSize: '14px' }}>
-                Private Key (hex):
-                <input
-                  type="password"
-                  value={privateKeyHex}
-                  onChange={(e) => setPrivateKeyHex(e.target.value)}
-                  placeholder="Informe sua chave privada em hex"
-                  style={{ marginLeft: '10px', padding: '5px', width: '400px' }}
-                />
-              </label>
-            </div>
-          ) : (
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{ fontSize: '14px' }}>Chave Pública: {publicKey}</p>
-              <p style={{ fontSize: '14px' }}>Endereço: {address}</p>
-              <p style={{ fontSize: '14px' }}>Saldo: {balance}</p>
-            </div>
-          )}
+          {isEvmConnected ? (
+            <div className={styles.walletInfo}>
+              <p style={{ fontSize: '14px'}}>Address:</p>
+              <p style={{ fontSize: '14px', width: '100%', wordWrap: 'break-word',overflowWrap: 'break-word', textAlign: 'center' }}>{evmAddress}</p>
+              <p style={{ fontSize: '14px' }}>Balance: {evmBalance}</p>
+            </div> ) : null
+          }
 
-          {isConnected ? null : <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <button onClick={connectWallet} >
+          {isEvmConnected ? null : <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <button onClick={connectEvmWallet} >
               Connect Wallet
             </button>
           </div>}
@@ -275,18 +368,18 @@ function MessageStorage() {
               Press Deploy to create the contract:
             </label>
             <br />
-            <button onClick={() => deploy(100)}  >
+            <button onClick={deployEvmContract}  >
               Deploy
             </button>
           </div>
 
           <div style={{ marginTop: '20px' }}>
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              {txid ? (
+              {evmContractAddress ? (
                 <p style={{ fontSize: '14px' }}>
-                  TXID: <a href={`${baseUrlWhatsOnChain}${txid}`} target="_blank" rel="noopener noreferrer"
+                  Contract Address: <a href={`https://etherscan.io/address/${evmContractAddress}`} target="_blank" rel="noopener noreferrer"
                   style={{ textDecoration: 'none', color: 'inherit' }}
-                  >{txid}</a>
+                  >{evmContractAddress}</a>
                 </p>
               ) : null}
             </div>
@@ -305,10 +398,10 @@ function MessageStorage() {
               />
             </div>
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              <button onClick={updateMessage} >
+              <button onClick={updateEvmMessage} >
                 Update Message
               </button>
-              <button onClick={readMessage} >
+              <button onClick={readEvmMessage} >
                 Read Message
               </button>
             </div>
@@ -319,4 +412,4 @@ function MessageStorage() {
   );
 }
 
-export default MessageStorage;
+export default Home;

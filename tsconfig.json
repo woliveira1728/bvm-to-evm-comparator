@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "resolveJsonModule": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["ethers"]
   }
 } 
