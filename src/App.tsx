@@ -1,13 +1,12 @@
-import { BrowserRouter } from "react-router-dom";
-import './App.css';
 import RoutesMain from './routes/RoutesMain';
+import TemplatePage from "./pages/TemplatePage";
 
 function App() {
 
   return (
-    <BrowserRouter>
+    <TemplatePage>
       <RoutesMain />
-    </BrowserRouter>
+    </TemplatePage>
   );
 }
 

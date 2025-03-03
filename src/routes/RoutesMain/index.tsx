@@ -1,6 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import Home from "../../pages/home";
-import MessageStorage from "../../pages/MessageStorage";
+import MessageStorage from "../../pages/Home";
 
 
 
@@ -9,8 +8,7 @@ const RoutesMain = () => {
     return (
         <Routes>
             
-            <Route path="/" element={<Home />} />
-            <Route path="/message" element={<MessageStorage />} />
+            <Route path="/" element={<MessageStorage />} />
 
         </Routes>
     );

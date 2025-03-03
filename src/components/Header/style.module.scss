@@ -1,0 +1,42 @@
+.headerContainer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-primary);
+    border-bottom: 0.125rem solid #FFFFFF;
+    background: #282c34;
+    padding: 30px;
+    position: fixed;
+    z-index: 1;
+
+    .headerTitle {
+        font-size: clamp(1rem, 0.7500rem + 1.2500vw, 1.875rem);
+        color: #FFFFFF;
+        &:hover {
+            cursor: pointer;
+        }
+    }
+
+    .headerLinksContainer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.25rem;
+
+        .headerLink {
+            font-size: clamp(0.875rem, 0.7500rem + 0.3900vw, 1.25rem);
+            color: #FFFFFF;
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
+
+    a {
+        color: #FFFFFF;
+        font-size: 20px;
+        font-weight: 500;
+        text-decoration: none;
+    }
+}
