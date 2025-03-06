@@ -39,14 +39,14 @@
 }
 
 
-input {
+label > input, div > div > input {
     margin-left: .625rem;
     padding: .3125rem;
     width: 25rem;
     background: #FFFFFF
 }
 
-button {
+div > button {
     font-size: 14px;
     padding: 5px;
     margin-top: 10px;

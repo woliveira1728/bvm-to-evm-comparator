@@ -4,12 +4,9 @@ import App from './App';
 import "./styles/reset.scss";
 import { BrowserRouter } from "react-router-dom";
 import reportWebVitals from './reportWebVitals';
-import { BvmToEvmComparator } from './contracts/bvmToEvmComparator';
 import { MessageStorageSCrypt } from './contracts/MessageStorageSCrypt';
-import artifactHelloWorld from './artifacts/bvmToEvmComparator.json';
 import messageContract from './artifacts/MessageStorageSCrypt.json'
 
-BvmToEvmComparator.loadArtifact(artifactHelloWorld);
 MessageStorageSCrypt.loadArtifact(messageContract);
 
 const root = ReactDOM.createRoot(
