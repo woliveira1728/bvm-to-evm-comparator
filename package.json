@@ -26,10 +26,8 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "pretest": "npx scrypt-cli compile",
-    "build:contract": "npx scrypt-cli compile",
+    "compile": "npx scrypt-cli compile && node ./compile.js",
     "deploy:contract": "npx tsx ./scripts/deploy.ts",
-    "verify:contract": "npx scrypt-cli verify $(cat .scriptHash) ./src/contracts/bvmToEvmComparator.ts",
     "genprivkey": "npx tsx ./scripts/privateKey.ts"
   },
   "eslintConfig": {

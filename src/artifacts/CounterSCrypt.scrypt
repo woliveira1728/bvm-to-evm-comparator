@@ -1,0 +1,18 @@
+
+contract CounterSCrypt {
+  @state int counter;
+  constructor() {
+    this.counter = 0;
+  }
+  public function increment(SigHashPreimage __scrypt_ts_txPreimage) {
+    require(Tx.checkPreimageSigHashType(__scrypt_ts_txPreimage, SigHashType(b'41')));
+    this.counter += 1;
+    require(true);
+  }
+  public function decrement(SigHashPreimage __scrypt_ts_txPreimage) {
+    require(Tx.checkPreimageSigHashType(__scrypt_ts_txPreimage, SigHashType(b'41')));
+    this.counter -= 1;
+    require(true);
+  }
+  function buildStateOutput(int amount) : bytes {  return Utils.buildOutput(this.getStateScript(), amount);}
+}
