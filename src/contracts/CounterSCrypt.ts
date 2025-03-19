@@ -4,20 +4,14 @@ export class CounterSCrypt extends SmartContract {
     @prop(true)
     counter: bigint;
 
-    constructor() {
+    constructor(counter: bigint) {
         super(...arguments);
-        this.counter = 0n;
+        this.counter = counter;
     }
 
     @method()
-    public increment() {
-        this.counter += 1n;
-        assert(true);
-    }
-
-    @method()
-    public decrement() {
-        this.counter -= 1n;
+    public updateValue(newValue: bigint) {
+        this.counter = newValue;
         assert(true);
     }
 }

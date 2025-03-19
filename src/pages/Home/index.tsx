@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Buffer } from 'buffer';
 import styles from "./style.module.scss";
 import { MessageStorageSCrypt } from "../../contracts/MessageStorageSCrypt";
-import { ethers, BrowserProvider, ContractFactory, Contract } from "ethers";
+import { ethers, BrowserProvider, ContractFactory, Contract, Wallet, JsonRpcProvider } from "ethers";
 import MessageStorageArtifact from "../../artifacts/MessageStorage.json";
 import path from 'path';
 import {
@@ -20,6 +20,7 @@ let Alice: TestWallet;
 
 function Home() {
   const [privateKeyHex, setPrivateKeyHex] = useState("");
+  const [privateKeyEvm, setPrivateKeyEvm] = useState("");
   const [newMessageBvmValue, setNewMessageBvmValue] = useState("");
   const [newMessageEvmValue, setNewMessageEvmValue] = useState("");
   const [publicKey, setPublicKey] = useState("");
@@ -31,7 +32,9 @@ function Home() {
   const [evmAddress, setEvmAddress] = useState("");
   const [evmBalance, setEvmBalance] = useState("");
   const [evmContractAddress, setEvmContractAddress] = useState("");
+  const [evmTxid, setEvmTxid] = useState("");
   const baseUrlWhatsOnChain = 'https://test.whatsonchain.com/tx/';
+  const baseUrlBscscan = 'https://testnet.bscscan.com/';
 
   // Função para criar o wallet a partir da chave privada fornecida
   const getBvmWallet = (): TestWallet => {
@@ -152,64 +155,103 @@ function Home() {
 
   // Função para conectar a carteira EVM
   const connectEvmWallet = async () => {
-    if (window.ethereum) {
+      let privateKey = privateKeyEvm.trim();
+  
+      // Remove o prefixo '0x' se presente
+      if (privateKey.startsWith("0x")) {
+        privateKey = privateKey.substring(2);
+      }
+  
+      // Verifica se a chave privada tem 64 caracteres hexadecimais
+      if (privateKey.length !== 64 || !/^[0-9a-fA-F]{64}$/.test(privateKey)) {
+        alert("Chave privada inválida. A chave privada deve ter 64 caracteres hexadecimais.");
+        return;
+      }
+  
       try {
-        const provider = new BrowserProvider(window.ethereum as any);
-        const accounts = await provider.send("eth_requestAccounts", []);
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
+        const provider = new JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545");
+        const wallet = new Wallet(privateKey, provider);
+        const address = await wallet.getAddress();
+  
+        // Verifica se o endereço foi obtido corretamente
+        if (!address) {
+            throw new Error("Endereço da carteira não encontrado.");
+        }
+  
         const balance = await provider.getBalance(address);
-
+  
+        // Verifica se o saldo não é vazio
+        if (balance === BigInt(0)) {
+            alert("Saldo da carteira é zero.");
+            return;
+        }
+  
+        // Verifica se o saldo está sendo retornado corretamente
+        const formattedBalance = ethers.formatEther(balance);
+        if (!formattedBalance || formattedBalance === "0") {
+            alert("Erro ao formatar o saldo da carteira.");
+            return;
+        }
+  
         setEvmAddress(address);
-        setEvmBalance(ethers.formatEther(balance));
+        setEvmBalance(formattedBalance);
         setIsEvmConnected(true);
+  
+        console.log("Carteira conectada:", address);
+        console.log("Saldo:", formattedBalance);
       } catch (e) {
         console.error("Conexão com a carteira EVM falhou", e);
         alert("Conexão com a carteira EVM falhou: " + e);
       }
-    } else {
-      alert("MetaMask não está instalado!");
-    }
-  };
+    };
 
   // Função para realizar o deploy do contrato EVM
   const deployEvmContract = async () => {
-    if (window.ethereum) {
+    if (isEvmConnected) {
       try {
-        const provider = new BrowserProvider(window.ethereum as any);
-        const signer = await provider.getSigner();
+        const provider = new JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545");
+        const wallet = new Wallet(privateKeyEvm, provider);
         const factory = new ContractFactory(
           MessageStorageArtifact.abi,
           MessageStorageArtifact.bytecode,
-          signer
+          wallet
         );
 
         const contract = await factory.deploy("Hello from Solidity!");
-        await contract.waitForDeployment();
-
-        console.log("Contrato EVM implantado. Endereço: ", contract.target);
-        alert("Contrato EVM implantado. Endereço: " + contract.target);
+        const tx = await contract.waitForDeployment();
 
         setEvmContractAddress(contract.target.toString());
+        if (tx && tx.deploymentTransaction()) {
+          const deploymentTx = tx.deploymentTransaction();
+          if (deploymentTx) {
+            setEvmTxid(deploymentTx.hash);
+          } else {
+            console.error("Deployment transaction is null or undefined");
+            alert("Deployment transaction is null or undefined");
+          }
+        } else {
+          console.error("Deployment transaction is null or undefined");
+          alert("Deployment transaction is null or undefined");
+        }
       } catch (e) {
         console.error("Deploy do contrato EVM falhou", e);
         alert("Deploy do contrato EVM falhou: " + e);
       }
     } else {
-      alert("MetaMask não está instalado!");
+      alert("Conecte-se à carteira EVM primeiro!");
     }
   };
 
   // Função para atualizar a mensagem no contrato EVM
   const updateEvmMessage = async () => {
-    if (window.ethereum && evmContractAddress) {
+    if (isEvmConnected && evmContractAddress) {
       try {
-        const provider = new BrowserProvider(window.ethereum as any);
-        const signer = await provider.getSigner();
+        const provider = new JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545");
+        const wallet = new Wallet(privateKeyEvm, provider);
         const contract = new Contract(
           evmContractAddress,
           MessageStorageArtifact.abi,
-          signer
+          wallet
         );
 
         const tx = await contract.updateMessage(newMessageEvmValue);
@@ -228,13 +270,14 @@ function Home() {
 
   // Função para ler a mensagem armazenada no contrato EVM
   const readEvmMessage = async () => {
-    if (window.ethereum && evmContractAddress) {
+    if (isEvmConnected && evmContractAddress) {
       try {
-        const provider = new BrowserProvider(window.ethereum as any);
+        const provider = new JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545");
+        const wallet = new Wallet(privateKeyEvm, provider);
         const contract = new Contract(
           evmContractAddress,
           MessageStorageArtifact.abi,
-          provider
+          wallet
         );
 
         const message = await contract.message();
@@ -348,13 +391,25 @@ function Home() {
             Message Storage - EVM with Solidity
           </h2>
 
-          {isEvmConnected ? (
+          {!isEvmConnected ? (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '14px' }}>
+                Private Key (hex):
+                <input
+                  type="password"
+                  value={privateKeyEvm}
+                  onChange={(e) => setPrivateKeyEvm(e.target.value)}
+                  placeholder="Informe sua chave privada em hex"
+                />
+              </label>
+            </div>
+          ) : (
             <div className={styles.walletInfo}>
-              <p style={{ fontSize: '14px'}}>Address:</p>
-              <p style={{ fontSize: '14px', width: '100%', wordWrap: 'break-word',overflowWrap: 'break-word', textAlign: 'center' }}>{evmAddress}</p>
+              <p style={{ fontSize: '14px' }}>Address:</p>
+              <p style={{ fontSize: '14px' }}>{evmAddress}</p>
               <p style={{ fontSize: '14px' }}>Balance: {evmBalance}</p>
-            </div> ) : null
-          }
+            </div>
+          )}
 
           {isEvmConnected ? null : <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <button onClick={connectEvmWallet} >
@@ -374,11 +429,11 @@ function Home() {
 
           <div style={{ marginTop: '20px' }}>
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              {evmContractAddress ? (
+              {evmTxid ? (
                 <p style={{ fontSize: '14px' }}>
-                  Contract Address: <a href={`https://etherscan.io/address/${evmContractAddress}`} target="_blank" rel="noopener noreferrer"
+                  TXID:{" "} <a href={`${baseUrlBscscan}tx/${evmTxid}`} target="_blank" rel="noopener noreferrer"
                   style={{ textDecoration: 'none', color: 'inherit' }}
-                  >{evmContractAddress}</a>
+                  >{evmTxid}</a>
                 </p>
               ) : null}
             </div>

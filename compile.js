@@ -2,55 +2,72 @@ const path = require('path');
 const fs = require('fs');
 const solc = require('solc');
 
-// Caminho para o contrato Solidity
-const contractPath = path.resolve(__dirname, 'contracts', 'MessageStorage.sol');
-const source = fs.readFileSync(contractPath, 'utf8');
+// Função para compilar um contrato
+function compileContract(contractName) {
+  // Caminho para o contrato Solidity
+  const contractPath = path.resolve(__dirname, 'contracts', `${contractName}.sol`);
+  const source = fs.readFileSync(contractPath, 'utf8');
 
-// Configuração do compilador
-const input = {
-  language: 'Solidity',
-  sources: {
-    'MessageStorage.sol': {
-      content: source,
-    },
-  },
-  settings: {
-    outputSelection: {
-      '*': {
-        '*': ['abi', 'evm.bytecode'],
+  // Configuração do compilador
+  const input = {
+    language: 'Solidity',
+    sources: {
+      [`${contractName}.sol`]: {
+        content: source,
       },
     },
-  },
-};
+    settings: {
+      outputSelection: {
+        '*': {
+          '*': ['abi', 'evm.bytecode'],
+        },
+      },
+    },
+  };
 
-// Compilar o contrato
-const output = JSON.parse(solc.compile(JSON.stringify(input)));
+  // Compilar o contrato
+  const output = JSON.parse(solc.compile(JSON.stringify(input)));
 
-// Verificar erros de compilação
-if (output.errors) {
-  output.errors.forEach((err) => {
-    console.error(err.formattedMessage);
-  });
+  // Verificar erros de compilação
+  if (output.errors) {
+    output.errors.forEach((err) => {
+      console.error(err.formattedMessage);
+    });
+    throw new Error(`Erro ao compilar o contrato ${contractName}`);
+  }
+
+  // Extrair ABI e bytecode
+  const contract = output.contracts[`${contractName}.sol`][contractName];
+  const abi = contract.abi;
+  const bytecode = contract.evm.bytecode.object;
+
+  return { abi, bytecode };
 }
 
-// Salvar o ABI e o bytecode em um arquivo JSON
-const contract = output.contracts['MessageStorage.sol'].MessageStorage;
-const abi = contract.abi;
-const bytecode = contract.evm.bytecode.object;
+// Função para salvar o ABI e o bytecode em um arquivo JSON
+function saveArtifact(contractName, artifact) {
+  const buildPath = path.resolve(__dirname, 'artifacts');
+  if (!fs.existsSync(buildPath)) {
+    fs.mkdirSync(buildPath);
+  }
 
-const artifact = {
-  abi,
-  bytecode,
-};
+  fs.writeFileSync(
+    path.resolve(buildPath, `${contractName}.json`),
+    JSON.stringify(artifact, null, 2)
+  );
 
-const buildPath = path.resolve(__dirname, 'artifacts');
-if (!fs.existsSync(buildPath)) {
-  fs.mkdirSync(buildPath);
+  console.log(`Contrato ${contractName} compilado com sucesso!`);
 }
 
-fs.writeFileSync(
-  path.resolve(buildPath, 'MessageStorage.json'),
-  JSON.stringify(artifact, null, 2)
-);
+// Compilar e salvar os contratos
+try {
+  // Compilar MessageStorage
+  const messageStorageArtifact = compileContract('MessageStorage');
+  saveArtifact('MessageStorage', messageStorageArtifact);
 
-console.log('Contrato compilado com sucesso!');
+  // Compilar CounterEvm
+  const counterEvmArtifact = compileContract('CounterEvm');
+  saveArtifact('CounterEvm', counterEvmArtifact);
+} catch (e) {
+  console.error(e.message);
+}

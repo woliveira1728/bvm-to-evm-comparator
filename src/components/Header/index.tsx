@@ -8,6 +8,7 @@ export const Header = ({  }) => {
          <h1 className={styles.headerTitle} >BVM to EVM Comparator</h1>
          <div className={styles.headerLinksContainer}>
             <Link to='/'>Message</Link>
+            <Link to='/counter'>Counter</Link>
          </div>
       </header>
    );
