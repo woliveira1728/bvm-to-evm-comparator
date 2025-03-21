@@ -127,7 +127,7 @@ function Counter() {
 
   // Função para incrementar x vezes de uma vez só
   const incrementBvmCounterMultiple = async (x: number) => {
-    for(let i = 0; i < x; i++) {
+    for(let i = 1; i <= x; i++) {
       await incrementCounter();
     }
   };
@@ -325,6 +325,12 @@ function Counter() {
     }
   };
 
+  const incrementEvmCounterMultiple = async (x: number) => {
+    for(let i = 1; i <= x; i++) {
+      await incrementEvmCounter();
+    }
+  };
+
   const decrementEvmCounter = async () => {
     if (isEvmConnected && evmContractAddress) {
       try {
@@ -464,7 +470,7 @@ function Counter() {
             </p>
           )}
 
-<div style={{ textAlign: 'center', marginBottom: '20px', display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center', marginBottom: '20px', display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'center' }}>
             <button
               className="insert"
               onClick={() => incrementBvmCounterMultiple(10)}
@@ -563,6 +569,32 @@ function Counter() {
                 </p>
               ) : null}
             </div>
+
+            <div style={{ textAlign: 'center', marginBottom: '20px', display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'center' }}>
+            <button
+              className="insert"
+              onClick={() => incrementEvmCounterMultiple(10)}
+              style={{ fontSize: '14px', padding: '5px', marginTop: '10px' }}
+            >
+              Atack 10x
+            </button>
+            
+            <button
+              className="insert"
+              onClick={() => incrementEvmCounterMultiple(50)}
+              style={{ fontSize: '14px', padding: '5px', marginTop: '10px' }}
+            >
+              Atack 50x
+            </button>
+
+            <button
+              className="insert"
+              onClick={() => incrementEvmCounterMultiple(100)}
+              style={{ fontSize: '14px', padding: '5px', marginTop: '10px' }}
+            >
+              Atack 100x
+            </button>
+          </div>
         </section>
       </div>
     </>
