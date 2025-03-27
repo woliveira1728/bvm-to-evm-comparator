@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 contract CounterEvm {
-    uint256 private counter;
+    int256 private counter;
 
-    event CounterUpdated(uint256 newValue);
+    event CounterUpdated(int256 newValue);
 
-    constructor(uint256 initialValue) {
+    constructor(int256 initialValue) {
         counter = initialValue;
         emit CounterUpdated(counter);
     }
@@ -21,7 +21,7 @@ contract CounterEvm {
         emit CounterUpdated(counter);
     }
 
-    function getCounter() public view returns (uint256) {
+    function getCounter() public view returns (int256) {
         return counter;
     }
 }
