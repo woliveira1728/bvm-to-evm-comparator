@@ -69,22 +69,23 @@ function Home() {
   const deployBvmContract = async (amount: number) => {
     try {
       const wallet = getBvmWallet();
-      const balance = await wallet.getBalance();
-
+      
       // Converte a mensagem inicial para hexadecimal
       const initialMessage = toHex(Buffer.from("Hello from sCrypt!").toString('hex'));
       const address = await wallet.getDefaultAddress();
       const ownerPubKey = await wallet.getPubKey(address);
       const instance = new MessageStorageSCrypt(initialMessage, PubKey(toHex(ownerPubKey)));
-
+      
       await instance.connect(wallet);
       const deployTx = await instance.deploy(amount);
+      const balance = await wallet.getBalance();
 
       console.log("Contrato implantado. TXID: ", deployTx.id);
       alert("Contrato implantado. TXID: " + deployTx.id);
 
       // Atualizar a interface do usuário com o novo TXID
       setTxid(deployTx.id);
+      setBalance(balance.confirmed);
     } catch (e) {
       console.error("Deploy falhou", e);
       alert("Deploy falhou: " + e);
@@ -95,28 +96,30 @@ function Home() {
   const updateBvmMessage = async () => {
     try {
       const wallet = getBvmWallet();
-
+      
       if (!newMessageBvmValue) {
         alert("Por favor, informe o novo valor da mensagem!");
         return;
       }
-
+      
       // Converte a nova mensagem para hexadecimal
       const newMessage = toHex(Buffer.from(newMessageBvmValue).toString('hex'));
-
+      
       // Desplegar um novo contrato com a nova mensagem
       const address = await wallet.getDefaultAddress();
       const ownerPubKey = await wallet.getPubKey(address);
       const instance = new MessageStorageSCrypt(newMessage, PubKey(toHex(ownerPubKey)));
-
+      
       await instance.connect(wallet);
-      const deployTx = await instance.deploy(100); // Ajuste o valor conforme necessário
+      const deployTx = await instance.deploy(100);
+      const balance = await wallet.getBalance();
 
       console.log("Mensagem atualizada. TXID: ", deployTx.id);
       alert("Mensagem atualizada. TXID: " + deployTx.id);
 
       // Atualizar a interface do usuário com o novo TXID
       setTxid(deployTx.id);
+      setBalance(balance.confirmed);
     } catch (e) {
       console.error("Atualização falhou", e);
       alert("Atualização falhou: " + e);
@@ -211,6 +214,8 @@ function Home() {
       try {
         const provider = new JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545");
         const wallet = new Wallet(privateKeyEvm, provider);
+        const address = await wallet.getAddress();
+        const balance = await provider.getBalance(address);
         const factory = new ContractFactory(
           MessageStorageArtifact.abi,
           MessageStorageArtifact.bytecode,
@@ -225,6 +230,7 @@ function Home() {
           const deploymentTx = tx.deploymentTransaction();
           if (deploymentTx) {
             setEvmTxid(deploymentTx.hash);
+            setEvmBalance(ethers.formatEther(balance));
           } else {
             console.error("Deployment transaction is null or undefined");
             alert("Deployment transaction is null or undefined");
@@ -248,6 +254,8 @@ function Home() {
       try {
         const provider = new JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545");
         const wallet = new Wallet(privateKeyEvm, provider);
+        const address = await wallet.getAddress();
+        const balance = await provider.getBalance(address);
         const contract = new Contract(
           evmContractAddress,
           MessageStorageArtifact.abi,
@@ -259,6 +267,7 @@ function Home() {
 
         console.log("Mensagem EVM atualizada. TX: ", tx.hash);
         alert("Mensagem EVM atualizada. TX: " + tx.hash);
+        setEvmBalance(ethers.formatEther(balance));
       } catch (e) {
         console.error("Atualização da mensagem EVM falhou", e);
         alert("Atualização da mensagem EVM falhou: " + e);

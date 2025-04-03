@@ -82,10 +82,12 @@ function Counter() {
 
       await instance.connect(wallet);
       const deployTx = await instance.deploy(amount);
-
+      const balance2 = await wallet.getBalance();
+      
       // Atualizar a interface do usuário com o novo TXID
       setCounterTxid(deployTx.id);
       setCounterValue(instance.counter);
+      setBvmBalance(balance2.confirmed);
     } catch (e) {
       console.error("Deploy falhou", e);
       alert("Deploy falhou: " + e);
@@ -96,25 +98,27 @@ function Counter() {
   const incrementCounter = async () => {
     try {
       const wallet = getBvmWallet();
-
+      
       if (!counterTxid) {
         alert("Por favor, implante o contrato Counter primeiro!");
         return;
       }
-
+      
       if (counterValue === null) {
         alert("Counter value is null. Please deploy the contract first.");
         return;
       }
       const increment = counterValue + 1n;
-
+      
       const instance = new CounterSCrypt(increment);
       await instance.connect(wallet);
       const deployTx = await instance.deploy(100);
+      const balance = await wallet.getBalance();
 
       // Atualizar o valor do contador
       await setCounterTxid(deployTx.id);
       await setCounterValue(instance.counter);
+      setBvmBalance(balance.confirmed);
     } catch (e) {
       console.error("Incremento do contador falhou", e);
       if ((e as Error).message.includes("Request has been terminated")) {
@@ -136,25 +140,27 @@ function Counter() {
   const decrementCounter = async () => {
     try {
       const wallet = getBvmWallet();
-
+      
       if (!counterTxid) {
         alert("Por favor, implante o contrato Counter primeiro!");
         return;
       }
-
+      
       if (counterValue === null) {
         alert("Counter value is null. Please deploy the contract first.");
         return;
       }
       const increment = counterValue - 1n;
-
+      
       const instance = new CounterSCrypt(increment);
       await instance.connect(wallet);
       const deployTx = await instance.deploy(100);
+      const balance = await wallet.getBalance();
 
       // Atualizar o valor do contador
       setCounterTxid(deployTx.id);
       setCounterValue(instance.counter);
+      setBvmBalance(balance.confirmed);
     } catch (e) {
       console.error("Decremento do contador falhou", e);
       if ((e as Error).message.includes("Request has been terminated")) {
@@ -279,6 +285,9 @@ function Counter() {
           if (deploymentTx) {
             setEvmTxid(deploymentTx.hash);
             setEvmCounterValue(0);
+            const address = await wallet.getAddress();
+            const balance = await provider.getBalance(address);
+            setEvmBalance(ethers.formatEther(balance));
           } else {
             console.error("Deployment transaction is null or undefined");
             alert("Deployment transaction is null or undefined");
@@ -316,6 +325,9 @@ function Counter() {
         // Atualizar o valor do contador após a transação
         const newCounterValue = await contract.getCounter();
         setEvmCounterValue(Number(newCounterValue));
+        const address = await wallet.getAddress();
+        const balance = await provider.getBalance(address);
+        setEvmBalance(ethers.formatEther(balance));
       } catch (e) {
         console.error("Incremento do contador falhou", e);
         alert("Incremento do contador falhou: " + e);
@@ -342,13 +354,6 @@ function Counter() {
           wallet
         );
 
-        // Verifique o valor atual do contador antes de decrementar
-        const currentCounterValue = await contract.getCounter();
-        if (currentCounterValue <= 0) {
-          alert("O valor do contador já é zero. Não é possível decrementar.");
-          return;
-        }
-
         const tx = await contract.decrement();
         await tx.wait();
 
@@ -357,6 +362,9 @@ function Counter() {
         // Atualizar o valor do contador após a transação
         const newCounterValue = await contract.getCounter();
         setEvmCounterValue(Number(newCounterValue));
+        const address = await wallet.getAddress();
+        const balance = await provider.getBalance(address);
+        setEvmBalance(ethers.formatEther(balance));
       } catch (e) {
         console.error("Decremento do contador falhou", e);
         alert("Decremento do contador falhou: " + e);
