@@ -1,0 +1,56 @@
+
+
+export interface UserContextType {
+    isBvmConnected: boolean;
+    isEvmConnected: boolean;
+    privateKeyHex: string;
+    setPrivateKeyHex: (value: string) => void;
+    connectBvmWallet: () => void;
+    publicKey: string;
+    address: string;
+    balance: number;
+    privateKeyEvm: string;
+    setPrivateKeyEvm: (value: string) => void;
+    connectEvmWallet: () => void;
+    evmAddress: string;
+    evmBalance: string;
+    newMessageBvmValue: string;
+    setNewMessageBvmValue: (value: string) => void;
+    newMessageEvmValue: string;
+    setNewMessageEvmValue: (value: string) => void;
+    setPublicKey: (value: string) => void;
+    setAddress: (value: string) => void;
+    setBalance: (value: number) => void;
+    setIsBvmConnected: (value: boolean) => void;
+    setIsEvmConnected: (value: boolean) => void;
+    txid: string;
+    setTxid: (value: string) => void;
+    setEvmAddress: (value: string) => void;
+    setEvmBalance: (value: string) => void;
+    evmContractAddress: string;
+    setEvmContractAddress: (value: string) => void;
+    evmTxid: string;
+    setEvmTxid: (value: string) => void;
+    deployBvmContract: (amount: number) => Promise<void>;
+    updateBvmMessage: () => Promise<void>;
+    readBvmMessage: () => Promise<void>;
+    deployEvmContract: () => Promise<void>;
+    updateEvmMessage: () => Promise<void>;
+    readEvmMessage: () => Promise<void>;
+    baseUrlBscscan: string;
+    baseUrlWhatsOnChain: string;
+    incrementCounter: () => Promise<void>;
+    decrementCounter: () => Promise<void>;
+    readCounter: () => Promise<void>;
+    deployBvmContractCounter: (amount: number) => Promise<void>;
+    deployEvmContractCounter: () => Promise<void>;
+    incrementEvmCounter: () => Promise<void>;
+    decrementEvmCounter: () => Promise<void>;
+    readEvmCounter: () => Promise<void>;
+    evmCounterValue: number | null;
+    setEvmCounterValue: (value: number | null) => void;
+    evmCounterTxHash: string;
+    setEvmCounterTxHash: (value: string) => void;
+    counterValue: bigint | null;
+    counterTxid: string;
+  }

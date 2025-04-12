@@ -1,23 +1,27 @@
+.main{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9.375rem;
+};
+
 .containerLeft{
-    height: 100vh;
+    min-height: 100vh;
     background-color: #282c34;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    margin-top: 90px;
-    border-inline: .1875rem solid #FFFFFF;
 };
 
 .containerRight{
-    height: 100vh;
+    min-height: 100vh;
     background-color: #282c34;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    margin-top: 90px;
-    border-inline: .1875rem solid #FFFFFF;
 };
 
 .section {

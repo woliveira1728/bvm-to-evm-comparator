@@ -8,6 +8,7 @@ import { MessageStorageSCrypt } from './contracts/MessageStorageSCrypt';
 import messageContract from './artifacts/MessageStorageSCrypt.json'
 import { CounterSCrypt } from './contracts/CounterSCrypt';
 import counterContract from './artifacts/CounterSCrypt.json'
+import { UserProvider } from './providers/UserContext';
 
 MessageStorageSCrypt.loadArtifact(messageContract);
 CounterSCrypt.loadArtifact(counterContract);
@@ -18,7 +19,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <UserProvider>
+        <App />
+      </UserProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
