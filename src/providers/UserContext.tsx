@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useState, useEffect } from "react";
 import { UserContextType } from "./interfaces";
 import { Buffer } from 'buffer';
 import styles from "./style.module.scss";
@@ -17,6 +17,8 @@ import {
   toHex,
   PubKey
 } from "scrypt-ts";
+import Timer from "../classes/Timer";
+
 
 const provider = new DefaultProvider({network: bsv.Networks.testnet});
 let Alice: TestWallet;
