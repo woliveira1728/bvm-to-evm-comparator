@@ -141,9 +141,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             await instance.connect(wallet);
             const deployTx = await instance.deploy(amount);
             const balance = await wallet.getBalance();
-
             console.log("Contrato implantado. TXID: ", deployTx.id);
-            alert("Contrato implantado. TXID: " + deployTx.id);
 
             // Atualizar a interface do usuário com o novo TXID
             setTxid(deployTx.id);
@@ -255,9 +253,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             // Converte a mensagem de volta para string
             const messageHex = instance.message;
             const message = Buffer.from(messageHex, 'hex').toString('utf-8');
-            stopTimer();
-
+            
             alert("Mensagem armazenada: " + message);
+            stopTimer();
         } catch (e) {
             stopTimer();
             if ((e as Error).message.includes("Request has been terminated")) {
@@ -432,6 +430,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 await tx.wait();
 
                 console.log("Mensagem EVM atualizada. TX: ", tx.hash);
+                alert("Mensagem EVM atualizada. TX: " + tx.hash);
                 setEvmBalance(ethers.formatEther(balance));
                 setEvmTxid(tx.hash);
                 stopTimer();
@@ -487,8 +486,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 );
 
                 const message = await contract.message();
-                alert("Mensagem armazenada no contrato EVM: " + message);
                 console.log("Mensagem armazenada no contrato EVM:", message);
+                alert("Mensagem armazenada no contrato EVM: " + message);
                 stopTimer();
             } catch (e) {
                 stopTimer();
@@ -588,7 +587,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             if (counterValue === null) {
                 stopTimer();
                 console.error("Counter value is null. Please deploy the contract first.");
-                // Exibe um alerta para o usuário
                 alert("Counter value is null. Please deploy the contract first.");
                 return;
             }
@@ -702,7 +700,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     // Função para ler o valor atual do contador
     const readCounter = async () => {
-        startTimer();
         try {
             if (!counterTxid) {
                 stopTimer();
@@ -717,7 +714,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             // Reconstrói a instância do contrato a partir da transação (assumindo que o estado está na saída 0)
             const instance = CounterSCrypt.fromTx(tx, 0);
             if (!instance) {
-                stopTimer();
                 console.error("Falha ao reconstruir o contrato Counter a partir do TX.");
                 alert("Falha ao reconstruir o contrato Counter a partir do TX.");
                 return;
@@ -725,9 +721,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         
             // Atualizar o valor do contador
             setCounterValue(instance.counter);
-            stopTimer();
         } catch (e) {
-            stopTimer();
             // Se ocorrer um erro durante a leitura, exibe uma mensagem de erro
             if ((e as Error).message.includes("Request has been terminated")) {
                 alert("Erro de rede: a solicitação foi interrompida. Verifique sua conexão de rede e tente novamente.");
@@ -968,7 +962,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const readEvmCounter = async () => {
-        startTimer();
         // Verifica se a carteira EVM está conectada
         if (!isEvmConnected) {
             stopTimer();
@@ -989,9 +982,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 const counterValue = await contract.getCounter();
                 setEvmCounterValue(Number(counterValue));
                 console.log("Valor do contador EVM lido:", counterValue);
-                stopTimer();
             } catch (e) {
-                stopTimer();
                 // Se ocorrer um erro durante a leitura, exibe uma mensagem de erro
                 if ((e as Error).message.includes("Request has been terminated")) {
                     console.error("Erro de rede: a solicitação foi interrompida. Verifique sua conexão de rede e tente novamente.");
@@ -1021,8 +1012,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 }
             }
         } else {
-            stopTimer();
-            console.error("Carteira EVM não conectada ou contrato não implantado");
             console.error("Carteira EVM não conectada ou contrato não implantado");
             alert("Conecte-se à carteira EVM e implante o contrato primeiro!");
             return;
