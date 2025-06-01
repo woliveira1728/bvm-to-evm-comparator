@@ -53,4 +53,9 @@ export interface UserContextType {
   setEvmCounterTxHash: (value: string) => void;
   counterValue: bigint | null;
   counterTxid: string;
+  transactionTime: string | null;
+  isTimerRunning: boolean;
+  startTimer: () => void;
+  stopTimer: () => void;
+  resetTimer: () => void;
 }

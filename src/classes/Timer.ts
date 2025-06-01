@@ -1,5 +1,6 @@
 interface TimerOptions {
   onUpdate?: (time: number, formattedTime: string) => void;
+  onComplete?: (totalTime: number, formattedTime: string) => void;
   precision?: number;
 }
 
@@ -8,19 +9,19 @@ class Timer {
   private elapsedTime: number = 0;
   private timerInterval: NodeJS.Timeout | null = null;
   private isRunning: boolean = false;
-  private lastUpdateTime: number = 0;
   private readonly onUpdate?: (time: number, formattedTime: string) => void;
+  private readonly onComplete?: (totalTime: number, formattedTime: string) => void;
   private readonly precision: number;
 
   constructor(options: TimerOptions = {}) {
     this.onUpdate = options.onUpdate;
-    this.precision = options.precision || 10; // padrão 10ms
+    this.onComplete = options.onComplete;
+    this.precision = options.precision || 10;
   }
 
   start(): void {
     if (!this.isRunning) {
       this.startTime = Date.now() - this.elapsedTime;
-      this.lastUpdateTime = this.startTime;
       this.timerInterval = setInterval(() => this.update(), this.precision);
       this.isRunning = true;
     }
@@ -29,29 +30,32 @@ class Timer {
   private update(): void {
     const now = Date.now();
     this.elapsedTime = now - this.startTime;
-    this.lastUpdateTime = now;
     
     if (this.onUpdate) {
       this.onUpdate(this.elapsedTime, this.formatTime(this.elapsedTime));
     }
   }
 
-  stop(): void {
+  stop(options: { reset?: boolean } = {}): void {
     if (this.isRunning && this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
       this.isRunning = false;
-      // Atualiza o tempo final para garantir precisão
       this.elapsedTime = Date.now() - this.startTime;
+      
+      if (options.reset) {
+        this.elapsedTime = 0;
+      }
+      
+      if (this.onComplete) {
+        this.onComplete(this.elapsedTime, this.formatTime(this.elapsedTime));
+      }
     }
   }
 
   reset(): void {
     this.stop();
     this.elapsedTime = 0;
-    if (this.onUpdate) {
-      this.onUpdate(this.elapsedTime, this.formatTime(this.elapsedTime));
-    }
   }
 
   getTime(): number {
