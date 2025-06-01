@@ -432,7 +432,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 await tx.wait();
 
                 console.log("Mensagem EVM atualizada. TX: ", tx.hash);
-                alert("Mensagem EVM atualizada. TX: " + tx.hash);
                 setEvmBalance(ethers.formatEther(balance));
                 setEvmTxid(tx.hash);
                 stopTimer();
@@ -458,16 +457,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             stopTimer();
             console.error("Carteira EVM não conectada ou contrato não implantado");
             // Se a carteira EVM não estiver conectada ou o contrato não estiver implantado, exibe um erro
-            console.error("Carteira EVM não conectada ou contrato não implantado");
-            // Exibe um alerta para o usuário
-            setEvmContractAddress("");
-            setEvmTxid("");
-            setEvmCounterValue(null);
-            setEvmCounterTxHash("");
-            setEvmBalance("");
-            setEvmAddress("");
-            setIsEvmConnected(false);
-            setNewMessageEvmValue("");
             console.error("Carteira EVM não conectada ou contrato não implantado");
             // Exibe um alerta para o usuário
             console.error("Carteira EVM não conectada ou contrato não implantado");
@@ -562,7 +551,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             setCounterValue(instance.counter);
             setBvmBalance(balance2.confirmed);
             console.log("Contrato Counter implantado. TXID: ", deployTx.id);
-            alert("Contrato Counter implantado. TXID: " + deployTx.id);
             stopTimer();
         } catch (e) {
             stopTimer();
@@ -617,7 +605,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             await setCounterValue(instance.counter);
             setBvmBalance(balance.confirmed);
             console.log("Contador incrementado. TXID: ", deployTx.id);
-            alert("Contador incrementado. TXID: " + deployTx.id);
             stopTimer();
         } catch (e) {
             stopTimer();
@@ -675,7 +662,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             const balance = await wallet.getBalance();
 
             console.log("Contador decrementado. TXID: ", deployTx.id);
-            alert("Contador decrementado. TXID: " + deployTx.id);
             stopTimer();
         
             // Atualizar o valor do contador
@@ -803,7 +789,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                         const balance = await provider.getBalance(address);
                         setEvmBalance(ethers.formatEther(balance));
                         console.log("Contrato EVM Counter implantado. TX: ", deploymentTx.hash);
-                        alert("Contrato EVM Counter implantado. TX: " + deploymentTx.hash);
                         stopTimer();
                     } else {
                         stopTimer();
@@ -854,18 +839,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             alert("Conecte-se à carteira EVM primeiro!");
             return;
         }
-        // Verifica se o endereço do contrato EVM está definido
-        if (!evmContractAddress) {
-            stopTimer();
-            alert("Contrato EVM não encontrado. Por favor, implante o contrato primeiro.");
-            return;
-        }
-        // Verifica se o valor do contador EVM é válido
-        if (evmCounterValue === null) {
-            stopTimer();
-            alert("Contador EVM não encontrado. Por favor, implante o contrato primeiro.");
-            return;
-        }
         
         if (isEvmConnected && evmContractAddress) {
             try {
@@ -889,7 +862,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 const balance = await provider.getBalance(address);
                 setEvmBalance(ethers.formatEther(balance));
                 console.log("Contador EVM incrementado. TX: ", tx.hash);
-                alert("Contador EVM incrementado. TX: " + tx.hash);
                 stopTimer();
             } catch (e) {
                 stopTimer();
@@ -957,7 +929,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 const balance = await provider.getBalance(address);
                 setEvmBalance(ethers.formatEther(balance));
                 console.log("Contador EVM decrementado. TX: ", tx.hash);
-                alert("Contador EVM decrementado. TX: " + tx.hash);
                 stopTimer();
             } catch (e) {
                 stopTimer();
@@ -1018,7 +989,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 const counterValue = await contract.getCounter();
                 setEvmCounterValue(Number(counterValue));
                 console.log("Valor do contador EVM lido:", counterValue);
-                alert("Valor do contador EVM lido: " + counterValue);
                 stopTimer();
             } catch (e) {
                 stopTimer();
