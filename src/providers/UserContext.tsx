@@ -199,13 +199,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             const deployTx = await instance.deploy(100);
             const balance = await wallet.getBalance();
 
+            stopTimer();
             console.log("Mensagem atualizada. TXID: ", deployTx.id);
             alert("Mensagem atualizada. TXID: " + deployTx.id);
 
             // Atualizar a interface do usuário com o novo TXID
             setTxid(deployTx.id);
             setBalance(balance.confirmed);
-            stopTimer();
         } catch (e) {
             stopTimer();
             if ((e as Error).message.includes("Request has been terminated")) {
@@ -254,8 +254,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             const messageHex = instance.message;
             const message = Buffer.from(messageHex, 'hex').toString('utf-8');
             
-            alert("Mensagem armazenada: " + message);
             stopTimer();
+            alert("Mensagem armazenada: " + message);
         } catch (e) {
             stopTimer();
             if ((e as Error).message.includes("Request has been terminated")) {
@@ -429,11 +429,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 const tx = await contract.updateMessage(newMessageEvmValue);
                 await tx.wait();
 
+                stopTimer();
                 console.log("Mensagem EVM atualizada. TX: ", tx.hash);
                 alert("Mensagem EVM atualizada. TX: " + tx.hash);
                 setEvmBalance(ethers.formatEther(balance));
                 setEvmTxid(tx.hash);
-                stopTimer();
             } catch (e) {
                 stopTimer();
                 // Se ocorrer um erro durante a atualização, exibe uma mensagem de erro
@@ -486,9 +486,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 );
 
                 const message = await contract.message();
+                stopTimer();
                 console.log("Mensagem armazenada no contrato EVM:", message);
                 alert("Mensagem armazenada no contrato EVM: " + message);
-                stopTimer();
             } catch (e) {
                 stopTimer();
                 // Se ocorrer um erro durante a leitura, exibe uma mensagem de erro
@@ -549,8 +549,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             setCounterTxid(deployTx.id);
             setCounterValue(instance.counter);
             setBvmBalance(balance2.confirmed);
-            console.log("Contrato Counter implantado. TXID: ", deployTx.id);
             stopTimer();
+            console.log("Contrato Counter implantado. TXID: ", deployTx.id);
         } catch (e) {
             stopTimer();
             if ((e as Error).message.includes("Request has been terminated")) {
@@ -602,8 +602,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             await setCounterTxid(deployTx.id);
             await setCounterValue(instance.counter);
             setBvmBalance(balance.confirmed);
-            console.log("Contador incrementado. TXID: ", deployTx.id);
             stopTimer();
+            console.log("Contador incrementado. TXID: ", deployTx.id);
         } catch (e) {
             stopTimer();
             // Se ocorrer um erro durante o incremento, exibe uma mensagem de erro
@@ -659,8 +659,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             const deployTx = await instance.deploy(100);
             const balance = await wallet.getBalance();
 
-            console.log("Contador decrementado. TXID: ", deployTx.id);
             stopTimer();
+            console.log("Contador decrementado. TXID: ", deployTx.id);
         
             // Atualizar o valor do contador
             setCounterTxid(deployTx.id);
@@ -782,8 +782,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                         const address = await wallet.getAddress();
                         const balance = await provider.getBalance(address);
                         setEvmBalance(ethers.formatEther(balance));
-                        console.log("Contrato EVM Counter implantado. TX: ", deploymentTx.hash);
                         stopTimer();
+                        console.log("Contrato EVM Counter implantado. TX: ", deploymentTx.hash);
                     } else {
                         stopTimer();
                         // Se a transação de implantação for nula ou indefinida, exibe um erro
@@ -817,7 +817,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             }
         } else {
             stopTimer();
-            console.error("Carteira EVM não conectada");
             // Se a carteira EVM não estiver conectada, exibe um erro
             console.error("Carteira EVM não conectada");
             alert("Conecte-se à carteira EVM primeiro!");
@@ -855,8 +854,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 const address = await wallet.getAddress();
                 const balance = await provider.getBalance(address);
                 setEvmBalance(ethers.formatEther(balance));
-                console.log("Contador EVM incrementado. TX: ", tx.hash);
                 stopTimer();
+                console.log("Contador EVM incrementado. TX: ", tx.hash);
             } catch (e) {
                 stopTimer();
                 // Se ocorrer um erro durante o incremento, exibe uma mensagem de erro
@@ -922,8 +921,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 const address = await wallet.getAddress();
                 const balance = await provider.getBalance(address);
                 setEvmBalance(ethers.formatEther(balance));
-                console.log("Contador EVM decrementado. TX: ", tx.hash);
                 stopTimer();
+                console.log("Contador EVM decrementado. TX: ", tx.hash);
             } catch (e) {
                 stopTimer();
                 // Se ocorrer um erro durante o decremento, exibe uma mensagem de erro
